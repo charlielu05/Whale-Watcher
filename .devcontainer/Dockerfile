@@ -1,0 +1,7 @@
+ARG VARIANT="3.8-bullseye"
+FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT}
+USER root
+
+# Install pip-compile
+RUN pip install --upgrade pip && \
+    pip install pip-tools

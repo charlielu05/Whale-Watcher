@@ -35,6 +35,5 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: |
-          echo "${PWD##*/}"
           cd infra/test_lambda/terraform
-          terraform plan -no-color >> $GITHUB_STEP_SUMMARY
+          terraform plan -no-color

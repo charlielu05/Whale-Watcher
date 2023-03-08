@@ -32,6 +32,9 @@
 		},
 		"ghcr.io/devcontainers-contrib/features/black:2": {
 			"version": "latest"
+		},
+		"ghcr.io/dhoeric/features/act:1": {
+			"version": "latest"
 		}
 	}
 

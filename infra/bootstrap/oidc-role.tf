@@ -54,7 +54,8 @@ resource "aws_iam_role_policy" "gha_oidc_terraform_permissions" {
         Action = [
           "lambda:*",
           "iam:*",
-          "s3:*"
+          "s3:*",
+          "ecr:*"
         ]
         Effect   = "Allow"
         Resource = "*"

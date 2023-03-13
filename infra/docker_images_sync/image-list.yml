@@ -1,0 +1,10 @@
+lambda-python:
+  source: public.ecr.aws/lambda/python
+  destination: aws/lambda-python
+  tags:
+    - 3.8
+jupyter-hub:
+  source: docker.io/bitnami/jupyterhub
+  destination: bitnami/jupyterhub
+  tags:
+    - 3.1.1-debian-11-r11

@@ -28,7 +28,7 @@ resource "aws_iam_role" "gha_oidc_assume_role" {
         "Action" : "sts:AssumeRoleWithWebIdentity",
         "Condition" : {
           "StringLike" : {
-            "token.actions.githubusercontent.com:sub" : ["repo:charlielu05/Chronicler:*"]
+            "token.actions.githubusercontent.com:sub" : ["repo:charlielu05/Whale-Watcher:*"]
           },
           "StringEquals" : {
             "token.actions.githubusercontent.com:aud" : "sts.amazonaws.com"

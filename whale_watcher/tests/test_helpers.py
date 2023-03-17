@@ -51,6 +51,5 @@ def _create_mock_repo(ecr_client,
         imageTag="latest",
     )["image"]["imageId"]["imageDigest"]
     
-    return ImageDetails(repoName = repo_name,
-                              imageDigest = image_digest,
-                              imageTag = image_tag)
+    return (repo_name, image_digest, image_tag)
+    

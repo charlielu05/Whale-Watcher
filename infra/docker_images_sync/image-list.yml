@@ -8,3 +8,8 @@ jupyter-hub:
   destination: bitnami/jupyterhub
   tags:
     - 3.1.1-debian-11-r11
+nginx:
+  source: docker.io/bitnami/nginx
+  destination: bitnami/nginx
+  tags:
+    - 1.23.3-debian-11-r33

@@ -11,6 +11,11 @@ class ImageDetails:
     imageDigest: str
     imageTag: str
 
+@dataclass
+class AppDetails:
+    applicationType: str
+    applicationName: str
+    
 def return_ecr_client(region_name='ap-southeast-2')->boto3.client:
     # boto3 configuration
     session = boto3.session.Session(region_name=region_name)
@@ -23,8 +28,12 @@ def return_lambda_client(region_name='ap-southeast-2')->boto3.client:
 
     return session.client("lambda")
 
+def get_image_repos(ecr_client:boto3.client)->List[str]:
+    return ecr_client.describe_repositories().get('repositories')
+    
 def get_image_scan_findings(ecr_client:boto3.client, 
                             image_detail:ImageDetails)->dict:
+    # get the ECR scan result for a single repository
     return  ecr_client.describe_image_scan_findings(
         repositoryName = image_detail.repoName,
         imageId = {
@@ -109,10 +118,14 @@ if __name__ == "__main__":
     sha_regex_filter = partial(regex_filter, regex_pattern = regex_image_sha)
     repo_name_regex_filter = partial(regex_filter, regex_pattern = regex_image_repo)
     
-    image_digest_and_tag = parse_imageid(functions_code_details, 
+    images_digest_and_tag = parse_imageid(functions_code_details, 
                                          tag_regex_filter,
                                          repo_name_regex_filter,
                                          sha_regex_filter)
     
     # severity count from image details
-    image_severity_count = get_severity_counts_from_image_details(ecr_client, image_digest_and_tag[0].get(TEST_LAMBDA_NAME))
+    # TODO: fix dict value unpacking into the function
+    images_severity_count = [get_severity_counts_from_image_details(ecr_client, list(image.values())[0])
+                             for image
+                             in images_digest_and_tag]
+                             

@@ -1,5 +1,10 @@
 SHELL := /bin/bash
 
+start-api:
+	. venv/bin/activate
+	cd ./src
+	uvicorn w2:app --reload
+	
 python-env:
 	python -m venv venv 
 	. venv/bin/activate 

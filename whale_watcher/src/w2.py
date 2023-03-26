@@ -99,7 +99,7 @@ def get_severity_counts_from_scan(image_scan_findings:dict)->dict:
 
 def map_severity(app_detail:AppDetails):
     
-    return {app_detail.resourceDetail: get_severity_counts_from_scan(
+    return {app_detail.resourceDetail.resourceArn: get_severity_counts_from_scan(
                     get_image_scan_findings(
                         app_detail.imageDetail
                     )
@@ -110,7 +110,7 @@ def get_severity_counts(app_details:List[AppDetails])->dict:
     return list(map(map_severity, app_details))
     
 @app.post('/image/scanFinding/')    
-def get_image_scan_findings(image_detail:ResourceDetail)->dict:
+def get_image_scan_findings(image_detail:ImageDetail)->dict:
     # get the ECR scan result for a single repository
     ecr_client = return_ecr_client()
     
@@ -146,7 +146,7 @@ def main():
     
     images_severity_counts = get_severity_counts(app_details)
     
-    return images_severity_counts[0]
+    return images_severity_counts
 
 if __name__ == "__main__":
     main()

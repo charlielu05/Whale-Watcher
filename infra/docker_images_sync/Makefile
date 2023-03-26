@@ -1,7 +1,8 @@
 SHELL := /bin/bash
 
 aws-public-ecr-login:
-	aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+	aws ecr-public get-login-password --region us-east-1 | \
+	docker login --username AWS --password-stdin public.ecr.aws
 
 docker-ecr-login:
 	aws ecr get-login-password --region ap-southeast-2 | \
@@ -39,6 +40,12 @@ tf-init:
 tf-apply:
 	cd terraform
 	terraform apply
+
+bootstrap-environment: tf-init tf-apply docker-ecr-login python-run images-sync
+
+destroy-environment:
+	cd terraform
+	terraform destroy
 
 .PHONY: *
 .ONESHELL:

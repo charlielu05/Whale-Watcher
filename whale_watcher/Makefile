@@ -12,13 +12,13 @@ python-env:
 	pip install --upgrade pip 
 	pip install -r ./src/requirements.txt
 
-python-run: python-env
-	. venv/bin/activate
-	python ./sync.py
-
 python-test:
 	. venv/bin/activate
 	python -m pytest
+
+python-debug:
+	. venv/bin/activate
+	python -i ./src/w2.py
 
 .PHONY: *
 .ONESHELL:

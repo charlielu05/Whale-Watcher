@@ -40,6 +40,17 @@ def return_lambda_client(region_name='ap-southeast-2')->boto3.client:
 
 def get_image_repos(ecr_client:boto3.client)->List[str]:
     return ecr_client.describe_repositories().get('repositories')
+
+def get_image_scan_findings(image_detail:ImageDetail)->dict:
+    ecr_client = return_ecr_client()
+    # get the ECR scan result for a single repository
+    return  ecr_client.describe_image_scan_findings(
+        repositoryName = image_detail.repoName,
+        imageId = {
+            'imageDigest' : image_detail.imageDigest,
+            'imageTag' : image_detail.imageTag
+        }
+    )
     
 def regex_filter(string_chars:str, regex_pattern:str):
     return re.search(regex_pattern, string_chars).group()
@@ -54,12 +65,14 @@ def construct_app_details(functions_details:dict,
     
     for function_details in functions_details:
         for key, val in function_details.items():
-            app_list.append(AppDetails(resourceDetail = key,
-                                       imageDetail = ImageDetail(repoName = repo_name_regex_function(val.get('ImageUri')),
-                                                        imageDigest = sha_regex_function(val.get('ResolvedImageUri')),
-                                                        imageTag = tag_regex_function(val.get('ImageUri')) 
-                                                        )
-                                        )
+            app_list.append(AppDetails(
+                                resourceDetail = key,
+                                imageDetail = ImageDetail(
+                                                repoName = repo_name_regex_function(val.get('ImageUri')),
+                                                imageDigest = sha_regex_function(val.get('ResolvedImageUri')),
+                                                imageTag = tag_regex_function(val.get('ImageUri')) 
+                                                )
+                                )
                             )
     
     return app_list
@@ -84,18 +97,17 @@ def get_lambda_image(lambda_app_details:List[AppDetails])->dict:
 def get_severity_counts_from_scan(image_scan_findings:dict)->dict:
     return image_scan_findings.get('imageScanFindings').get('findingSeverityCounts')
 
-def map_severity(image_app:dict):
-    k, v = image_app.items()
+def map_severity(app_detail:AppDetails):
     
-    return {k: get_severity_counts_from_scan(
+    return {app_detail.resourceDetail: get_severity_counts_from_scan(
                     get_image_scan_findings(
-                        v
+                        app_detail.imageDetail
                     )
     )}
     
-def get_severity_counts_from_image_details(image_details:List["dict[AppDetails, ResourceDetail]"])->dict:
+def get_severity_counts(app_details:List[AppDetails])->dict:
     # given the repository_detail, get the severity count for that image
-    return list(map(map_severity, image_details))
+    return list(map(map_severity, app_details))
     
 @app.post('/image/scanFinding/')    
 def get_image_scan_findings(image_detail:ResourceDetail)->dict:
@@ -118,10 +130,6 @@ def get_lambda_functions():
 
 @app.get('/')
 def main():
-    pass
-   
-
-if __name__ == "__main__":
     lambda_functions = get_lambda_functions()
     lambda_functions_details: List[AppDetails] = get_lambda_app_details(lambda_functions)
     functions_code_details = get_lambda_image(lambda_functions_details)
@@ -131,10 +139,14 @@ if __name__ == "__main__":
     sha_regex_filter = partial(regex_filter, regex_pattern = regex_image_sha)
     repo_name_regex_filter = partial(regex_filter, regex_pattern = regex_image_repo)
     
-    app_details: List["dict[AppDetails, ResourceDetail]"] = construct_app_details(functions_code_details, 
+    app_details: List["dict[ResourceDetail, ImageDetail]"] = construct_app_details(functions_code_details, 
                                          tag_regex_filter,
                                          repo_name_regex_filter,
                                          sha_regex_filter)
     
-    #images_severity_counts = get_severity_counts_from_image_details(images_digest_and_tag)
+    images_severity_counts = get_severity_counts(app_details)
     
+    return images_severity_counts[0]
+
+if __name__ == "__main__":
+    main()

@@ -174,14 +174,14 @@ if __name__ == "__main__":
     dynamo.create_table('test')
     
     # test insert scan finding
-    test_dict = {'findings': image_scan_finding} | {'image_name': app_details[0].imageDetail.repoName,
-                                         'image_tag': app_details[0].imageDetail.imageTag}
+    test_dict = {'findings': image_scan_finding} | {'image_name': app_details[1].imageDetail.repoName,
+                                         'image_tag': app_details[1].imageDetail.imageTag}
     
     dynamo.insert_data('test', test_dict)
     
     # test fetch data from dynamodb
-    ddb_query = {'image_name': app_details[0].imageDetail.repoName,
-                'image_tag': app_details[0].imageDetail.imageTag}
+    ddb_query = {'image_name': app_details[1].imageDetail.repoName,
+                'image_tag': app_details[1].imageDetail.imageTag}
     
     ddb_response =dynamo.get_data(table_name = 'test', 
                     query = ddb_query)

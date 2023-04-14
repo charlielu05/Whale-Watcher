@@ -31,3 +31,4 @@ override.tf.json
 venv
 *.json
 *.pyc
+*.db

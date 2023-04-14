@@ -4,6 +4,7 @@ from typing import List,Callable
 import re 
 from functools import partial
 from pydantic import BaseModel
+from database.db import DynamoDB
 
 # regex string
 regex_image_tag = '(?<=:).*'
@@ -149,4 +150,38 @@ def main():
     return images_severity_counts
 
 if __name__ == "__main__":
-    main()
+    lambda_functions = get_lambda_functions()
+    lambda_functions_details: List[ResourceDetail] = get_lambda_app_details(lambda_functions)
+    functions_code_details = get_lambda_image(lambda_functions_details)
+    
+    # set regex function partially and pass to parse function
+    tag_regex_filter = partial(regex_filter, regex_pattern = regex_image_tag)
+    sha_regex_filter = partial(regex_filter, regex_pattern = regex_image_sha)
+    repo_name_regex_filter = partial(regex_filter, regex_pattern = regex_image_repo)
+    
+    app_details: List["dict[ResourceDetail, ImageDetail]"] = construct_app_details(functions_code_details, 
+                                         tag_regex_filter,
+                                         repo_name_regex_filter,
+                                         sha_regex_filter)
+    
+    images_severity_counts = get_severity_counts(app_details)
+    
+    # sample image scan finding
+    image_scan_finding = get_image_scan_findings(app_details[0].imageDetail).get('imageScanFindings').get('findings')
+    
+    # test dynamodb class
+    dynamo = DynamoDB()
+    dynamo.create_table('test')
+    
+    # test insert scan finding
+    test_dict = {'findings': image_scan_finding} | {'image_name': app_details[0].imageDetail.repoName,
+                                         'image_tag': app_details[0].imageDetail.imageTag}
+    
+    dynamo.insert_data('test', test_dict)
+    
+    # test fetch data from dynamodb
+    ddb_query = {'image_name': app_details[0].imageDetail.repoName,
+                'image_tag': app_details[0].imageDetail.imageTag}
+    
+    ddb_response =dynamo.get_data(table_name = 'test', 
+                    query = ddb_query)

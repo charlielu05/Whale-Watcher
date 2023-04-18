@@ -1,5 +1,6 @@
 from typing import Protocol
 import boto3
+from .schema.dynamodb import ddb_schema
 from botocore.exceptions import ClientError
 import logging
 from boto3.dynamodb.types import TypeSerializer
@@ -28,8 +29,8 @@ class DB(Protocol):
 
 
 class DynamoDB:
-    def __init__(self):
-        self.client =  boto3.client('dynamodb', endpoint_url='http://localhost:8000')
+    def __init__(self, endpoint_url:str):
+        self.client =  boto3.client('dynamodb', endpoint_url=endpoint_url)
         self.table = None
         
     def create_table(self, table_name:str)->None:
@@ -38,15 +39,7 @@ class DynamoDB:
             try:
                 self.table = self.client.create_table(
                     TableName=table_name,
-                    KeySchema=[
-                        {'AttributeName': 'image_name', 'KeyType': 'HASH'},  # Partition key
-                        {'AttributeName': 'image_tag', 'KeyType': 'RANGE'}  # Sort key
-                    ],
-                    AttributeDefinitions=[
-                        {'AttributeName': 'image_name', 'AttributeType': 'S'},
-                        {'AttributeName': 'image_tag', 'AttributeType': 'S'}
-                    ],
-                    BillingMode = 'PAY_PER_REQUEST',
+                    **ddb_schema
                     )
                 waiter = self.client.get_waiter('table_exists')
                 waiter.wait(TableName=table_name)
@@ -56,6 +49,7 @@ class DynamoDB:
                     "Couldn't create table %s. Here's why: %s: %s", table_name,
                     err.response['Error']['Code'], err.response['Error']['Message'])
                 raise
+            
             else:
                 return self.table
         else:

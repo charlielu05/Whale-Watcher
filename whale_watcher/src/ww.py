@@ -1,8 +1,9 @@
 from fastapi import FastAPI
-from database.db import DynamoDB
+from databases.db import DynamoDB
 from resources.aws_lambda import return_lambda_image_details
 from ww_helpers import get_app_details
 from image_scanners.ecr import get_severity_counts, get_image_scan_findings
+from boto3.dynamodb.types import TypeDeserializer
 
 app = FastAPI()
 
@@ -42,3 +43,18 @@ if __name__ == "__main__":
     
     ddb_response =dynamo.get_data(table_name = 'test', 
                     query = ddb_query)
+    
+    # deserialised reseults
+    deserializer = TypeDeserializer()
+    deserialized_findings = deserializer.deserialize(ddb_response.get('Item').get('findings'))
+    
+    # filter out dict keys we are interested in
+    # name, severity and description
+    interested_keys = ['name', 'severity', 'description']
+    
+    filtered_findings = [{key: finding.get(key) 
+                          for key 
+                          in interested_keys}
+                        for finding
+                        in deserialized_findings]
+                         

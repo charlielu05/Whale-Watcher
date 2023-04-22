@@ -16,9 +16,20 @@ python-test:
 	. .ww/bin/activate
 	python -m pytest
 
-python-debug:
+start-local-dynamodb:
+	docker-compose up -d
+
+stop-local-dynamodb:
+	docker-compose down
+
+python-dev: start-local-dynamodb
 	. .ww/bin/activate
-	python -i ./src/w2.py
+	python -i ./src/ww.py
+
+llm-dev: 
+	source .env.sh
+	. .ww/bin/activate
+	python -i ./src/llm.py
 
 .PHONY: *
 .ONESHELL:

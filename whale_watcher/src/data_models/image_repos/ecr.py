@@ -1,6 +1,25 @@
+
 import boto3
 from typing import List
-from ..ww_data_models import ImageDetail
+from datetime import datetime
+from data_models.ww_data_models import ImageDetail
+
+class ecrImages(ImageDetail):
+    createDate: datetime
+    imageArn: str
+    imageUri: str
+    
+    @classmethod
+    # deserialize the json response from boto ecr describe repositories call
+    def from_boto(cls, d:dict):
+        image_repos:List[dict[str]] = d.get('repositories')
+        
+        return [cls(repoName=image.get('repositoryName'),
+                    createDate=image.get('createdAt'),
+                    imageArn=image.get('repositoryArn'),
+                    imageUri=image.get('repositoryUri'))
+                for image
+                in image_repos]
 
 def return_ecr_client(region_name='ap-southeast-2')->boto3.client:
     # boto3 configuration
@@ -21,3 +40,5 @@ def get_image_scan_findings(image_detail:ImageDetail)->dict:
             'imageTag' : image_detail.imageTag
         }
     )
+    
+    

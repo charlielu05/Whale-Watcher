@@ -1,7 +1,7 @@
 # from https://github.com/getmoto/moto/blob/master/tests/test_ecr/test_ecr_helpers.py
 import hashlib
 import random
-from w2 import ImageDetails
+from src.data_models.ww_data_models import ImageDetail
 import json
 
 def _generate_random_sha():
@@ -44,12 +44,13 @@ def _create_mock_repo(ecr_client,
                       repo_name:str = 'test-repo', 
                       image_tag:str = 'latest'):
     
-    ecr_client.create_repository(repositoryName=repo_name)
+    response = ecr_client.create_repository(repositoryName=repo_name)
+    
     image_digest = ecr_client.put_image(
         repositoryName=repo_name,
         imageManifest=json.dumps(_create_image_manifest()),
         imageTag="latest",
     )["image"]["imageId"]["imageDigest"]
     
-    return (repo_name, image_digest, image_tag)
+    return (response, image_digest, image_tag)
     

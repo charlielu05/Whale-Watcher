@@ -1,6 +1,6 @@
 # AWS ECR specific data models and implementations
 from dataclasses import dataclass
-from ww_data_models import *
+from whale_watcher.src.data_models.ww_data_models import *
 from typing import List
 import boto3
 

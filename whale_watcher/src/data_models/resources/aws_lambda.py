@@ -1,5 +1,5 @@
 from typing import List
-from ww_data_models import AppDetails, ResourceDetail
+from whale_watcher.src.data_models.ww_data_models import AppDetails, ResourceDetail
 import boto3
 
 def return_lambda_client(region_name='ap-southeast-2')->boto3.client:

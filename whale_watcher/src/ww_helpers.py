@@ -1,5 +1,5 @@
 import re 
-from ww_data_models import AppDetails, ImageDetail
+from whale_watcher.src.data_models.ww_data_models import AppDetails, ImageDetail
 from typing import Callable
 from functools import partial
 

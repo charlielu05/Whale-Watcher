@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 class ImageDetail(BaseModel, frozen=True):
-    repoName: str
+    imageName: str
 
 class ResourceDetail(BaseModel, frozen=True):
     resourceType: str
@@ -11,5 +11,4 @@ class ResourceDetail(BaseModel, frozen=True):
 class AppDetails(BaseModel, frozen=True):
     resourceDetail: ResourceDetail
     imageDetail: ImageDetail
-    
     

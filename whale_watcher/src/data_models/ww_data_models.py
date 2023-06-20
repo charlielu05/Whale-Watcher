@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 
 class ImageDetail(BaseModel, frozen=True):
-    imageName: str
-
+    ...
+    
 class ResourceDetail(BaseModel, frozen=True):
     resourceType: str
     resourceName: str

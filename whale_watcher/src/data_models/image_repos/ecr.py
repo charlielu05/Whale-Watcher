@@ -1,4 +1,3 @@
-
 import boto3
 from typing import List
 from datetime import datetime
@@ -6,9 +5,9 @@ from src.data_models.ww_data_models import ImageDetail, ResourceDetail
 from pydantic import BaseModel
 
 class ecrImage(ImageDetail):
-    createDate: datetime
-    imageArn: str
-    imageUri: str
+    imageDigest: str
+    imageTag: str
+    repoName: str
     
     def get_image_scan_findings(self)->dict:
         # get the ECR scan result for a single repository
@@ -26,10 +25,25 @@ class ecrRepo(BaseModel):
     repositoryArn:str
     repositoryUri:str
     
-class Ecr(BaseModel):
-    region:str
+    def return_images(self):
+        return [ecrImage(imageDigest=image.get('imageDigest'),
+                         imageTag=image.get('imageTag'),
+                         repoName=self.repoName)
+                for image
+                in self.list_repo_images.get('imageIds')]
     
     @property
+    def _return_ecr_client(self)->boto3.client:
+        session = boto3.session.Session(region_name=self.region)
+        return session.client("ecr")
+    
+    @property
+    def list_repo_images(self):
+        return self._return_ecr_client.list_images(repositoryName=self.repoName)
+    
+class Ecr(BaseModel):
+    region:str
+   
     def return_ecr_repos(self):
         return [ecrRepo(repoName=repo.get('repositoryName'),
                         createdAt=repo.get('createdAt'),

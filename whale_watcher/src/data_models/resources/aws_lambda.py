@@ -1,7 +1,14 @@
 from typing import List
 from whale_watcher.src.data_models.ww_data_models import AppDetails, ResourceDetail
 import boto3
+from pydantic import BaseModel
 
+class awsLambdaService(BaseModel):
+    pass
+
+class awsLambda(BaseModel):
+    pass
+    
 def return_lambda_client(region_name='ap-southeast-2')->boto3.client:
     # boto3 configuration
     session = boto3.session.Session(region_name=region_name)

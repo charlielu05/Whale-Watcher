@@ -75,3 +75,35 @@ class DynamoDB:
     
 def insert_data_to_db(database: DB, data) -> None:
     database.insert_data(data)
+
+if __name__ == "__main__":
+    # test dynamodb class
+    dynamo = DynamoDB(endpoint_url='http://localhost:8000')
+    dynamo.create_table('test')
+    
+    # test insert scan finding
+    test_dict = {'findings': image_scan_finding} | {'image_name': app_details[1].imageDetail.repoName,
+                                         'image_tag': app_details[1].imageDetail.imageTag}
+    
+    dynamo.insert_data('test', test_dict)
+    
+    # test fetch data from dynamodb
+    ddb_query = {'image_name': app_details[1].imageDetail.repoName,
+                'image_tag': app_details[1].imageDetail.imageTag}
+    
+    ddb_response =dynamo.get_data(table_name = 'test', 
+                    query = ddb_query)
+    
+    # deserialised reseults
+    deserializer = TypeDeserializer()
+    deserialized_findings = deserializer.deserialize(ddb_response.get('Item').get('findings'))
+    
+    # filter out dict keys we are interested in
+    # name, severity and description
+    interested_keys = ['name', 'severity', 'description']
+    
+    filtered_findings = [{key: finding.get(key) 
+                          for key 
+                          in interested_keys}
+                        for finding
+                        in deserialized_findings]

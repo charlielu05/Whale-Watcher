@@ -42,12 +42,14 @@ class ecrRepo(BaseModel):
         return self._return_ecr_client.list_images(repositoryName=self.repoName).get('imageIds')
     
     def return_images(self):
-        return [ecrImage(imageDigest=image.get('imageDigest'),
-                         imageTag=image.get('imageTag'),
-                         repoName=self.repoName,
-                         region=self.region)
-                for image
-                in self.list_repo_images]
+        images = {}
+        for image in self.list_repo_images:
+            images = images | {f"004279011638.dkr.ecr.{self.region}.amazonaws.com/{self.repoName}@{image.get('imageDigest')}":
+                    ecrImage(imageDigest=image.get('imageDigest'),
+                            imageTag=image.get('imageTag'),
+                            repoName=self.repoName,
+                            region=self.region)}
+        return images
     
 class ecrImage(ImageDetail):
     imageDigest: str
@@ -59,13 +61,19 @@ class ecrImage(ImageDetail):
     def _return_ecr_client(self)->boto3.client:
         session = boto3.session.Session(region_name=self.region)
         return session.client("ecr")
-
-    def get_image_scan_findings(self)->dict:
+    
+    def return_image_finding(self)->dict:
+        return self.get_image_scan_finding(ecr_client = self._return_ecr_client,
+                                            repository_name = self.repoName,
+                                            image_id = {
+                                                'imageDigest' : self.imageDigest,
+                                                'imageTag' : self.imageTag}
+                                            )
+    
+    @staticmethod
+    def get_image_scan_finding(ecr_client, repository_name:str, image_id:dict)->dict:
         # get the ECR scan result for a single repository
-        return  self._return_ecr_client.describe_image_scan_findings(
-            repositoryName = self.repoName,
-            imageId = {
-                'imageDigest' : self.imageDigest,
-                'imageTag' : self.imageTag
-            }
-        ).get('imageScanFindings')
+        return  ecr_client.describe_image_scan_findings(
+                    repositoryName = repository_name,
+                    imageId = image_id    
+            ).get('imageScanFindings')

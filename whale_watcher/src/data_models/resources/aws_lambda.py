@@ -24,7 +24,8 @@ class awsLambdaService(BaseModel):
                           LastModified=lambda_function.get('LastModified'),
                           description=lambda_function.get('Description'),
                           role=lambda_function.get('Role'),
-                          functonArn=lambda_function.get('FunctionArn'))
+                          functonArn=lambda_function.get('FunctionArn'),
+                          region=self.region)
                 for lambda_function
                 in self.list_lambda_functions]
     
@@ -35,44 +36,17 @@ class awsLambda(BaseModel):
     LastModified: datetime
     description: str
     role: str
+    region: str
     functonArn: str
+
+    @property
+    def _return_lambda_client(self)->boto3.client:
+        session = boto3.session.Session(region_name=self.region)
+        return session.client("lambda")
+    
+    def lambda_code_detail(self)->dict:
+        return self._return_lambda_client.get_function(
+                FunctionName = self.functionName).get('Code')
 
     def return_lambda_versions(self):
         pass
-
-####
-
-def return_lambda_client(region_name='ap-southeast-2')->boto3.client:
-    # boto3 configuration
-    session = boto3.session.Session(region_name=region_name)
-
-    return session.client("lambda")
-
-def get_lambda_app_details(lambda_functions:dict)->List[ResourceDetail]:
-    return [ResourceDetail(
-                resourceType = 'lambda',
-                resourceName = function.get('FunctionName'),
-                resourceArn = function.get('FunctionArn')
-                )
-            for function
-            in lambda_functions.get('Functions')]
-    
-def get_lambda_image(lambda_app_details:List[AppDetails])->dict:
-    lambda_client = return_lambda_client()
-    
-    return [{function_detail: lambda_client.get_function(
-                                                    FunctionName = function_detail.resourceName).get('Code')}
-            for function_detail
-            in lambda_app_details]
-
-def get_lambda_functions():
-    lambda_client = return_lambda_client()
-    
-    return lambda_client.list_functions()
-
-def return_lambda_image_details():
-    lambda_functions = get_lambda_functions()
-    lambda_functions_details: List[AppDetails] = get_lambda_app_details(lambda_functions)
-    functions_code_details = get_lambda_image(lambda_functions_details)
-    
-    return functions_code_details
